@@ -1,6 +1,8 @@
 package io.qmbot.telegrambot;
 
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -18,7 +20,7 @@ public class Bot extends TelegramLongPollingBot {
     private static final String BOT_TOKEN = System.getProperty("bot.token");
     private static final String CONFIG = System.getProperty("bot.config");
     private static final String BOT_NAME = System.getProperty("bot.name");
-
+    private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 
     public static void main(String[] args) throws TelegramApiException {
         System.out.println("Token: " + BOT_TOKEN);
@@ -29,6 +31,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        logger.info("Update: {}", update);
         if (update.getMessage().getNewChatMembers().size() > 0) {
             reaction(new File(CONFIG + "/reactions/newMember").listFiles(), update.getMessage());
         }
@@ -48,20 +51,16 @@ public class Bot extends TelegramLongPollingBot {
         Random random = new Random();
         File file = files[random.nextInt(files.length)];
         String typeFile = FilenameUtils.getExtension(file.getName());
-        if (typeFile.contains("png") || typeFile.contains("jpg")) {
-            try {
+        try {
+            if (typeFile.equals("png") || typeFile.equals("jpg")) {
                 execute(SendPhoto.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
                         .photo(new InputFile(file)).build());
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-        } else if (typeFile.contains("mp4") || typeFile.contains("gif")) {
-            try {
+            } else if (typeFile.equals("mp4") || typeFile.equals("gif")) {
                 execute(SendAnimation.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
                         .animation(new InputFile(file)).build());
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
             }
+        } catch (TelegramApiException e) {
+            logger.error("Failed to execute", e);
         }
     }
 
