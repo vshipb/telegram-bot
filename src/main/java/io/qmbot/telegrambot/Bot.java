@@ -32,9 +32,14 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         logger.info("Update: {}", update);
+
+        if (update.getMessage() == null) return;
+
         if (update.getMessage().getNewChatMembers().size() > 0) {
             reaction(new File(CONFIG + "/reactions/newMember").listFiles(), update.getMessage());
         }
+
+        if (update.getMessage().getText() == null) return;
 
         File[] arrDirs = new File(CONFIG + "/reactions/replies").listFiles();
         if (arrDirs == null) return;
