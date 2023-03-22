@@ -1,5 +1,7 @@
 package io.qmbot.telegrambot;
 
+import java.io.File;
+import java.util.Random;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +15,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-import java.io.File;
-import java.util.Random;
 
 public class Bot extends TelegramLongPollingBot {
     private static final String BOT_TOKEN = System.getProperty("bot.token");
@@ -46,7 +46,7 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    public void reaction(File[] files, Message message){
+    public void reaction(File[] files, Message message) {
         if (files == null) return;
         Random random = new Random();
         File file = files[random.nextInt(files.length)];
