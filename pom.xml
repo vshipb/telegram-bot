@@ -52,9 +52,11 @@
 
         <dependency>
             <groupId>org.telegram</groupId>
-            <artifactId>telegrambots</artifactId>
+            <artifactId>telegrambotsextensions</artifactId>
             <version>6.5.0</version>
         </dependency>
+
+
     </dependencies>
 
     <build>
