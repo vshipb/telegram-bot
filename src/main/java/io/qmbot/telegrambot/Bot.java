@@ -1,24 +1,18 @@
 package io.qmbot.telegrambot;
 
-import java.io.*;
-import java.io.File;
-import java.net.URL;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
-
 import io.qmbot.telegrambot.commandbot.TelegramLongPollingCommandBot;
-import org.apache.commons.io.FileUtils;
+import java.io.File;
+import java.util.Random;
 import org.apache.commons.io.FilenameUtils;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
@@ -28,7 +22,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     public static final String BOT_NAME = System.getProperty("bot.name");
     public static final Logger logger = LoggerFactory.getLogger(Bot.class);
 
-    public static final String MASTER_ID = System.getProperty("bot.masterId");
+  //  public static final String MASTER_ID = System.getProperty("bot.masterId");
 
     public static void main(String[] args) throws TelegramApiException {
         System.out.println("Token: " + BOT_TOKEN);
@@ -55,9 +49,9 @@ public class Bot extends TelegramLongPollingCommandBot {
         if (files == null) return;
         Random random = new Random();
         File file = files[random.nextInt(files.length)];
-        String typeFile = FilenameUtils.getExtension(file.getName());
+        String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase();
         try {
-            if (typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("JPEG")) {
+            if (typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("jpeg")) {
                 execute(SendPhoto.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
                         .photo(new InputFile(file)).build());
             } else if (typeFile.equals("mp4") || typeFile.equals("gif")) {

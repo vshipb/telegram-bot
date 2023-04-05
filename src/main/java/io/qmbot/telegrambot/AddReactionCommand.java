@@ -1,19 +1,21 @@
 package io.qmbot.telegrambot;
 
 import io.qmbot.telegrambot.commandbot.commands.BotCommand;
-import org.apache.commons.io.FileUtils;
-import org.json.JSONObject;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.*;
-import org.telegram.telegrambots.meta.api.objects.games.Animation;
-import org.telegram.telegrambots.meta.bots.AbsSender;
-
-import java.io.*;
+import java.io.BufferedReader;
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
+import org.json.JSONObject;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.games.Animation;
+import org.telegram.telegrambots.meta.bots.AbsSender;
 
 public class AddReactionCommand extends BotCommand {
     public AddReactionCommand() {
@@ -33,6 +35,8 @@ public class AddReactionCommand extends BotCommand {
             PhotoSize largestPhoto = photos.stream()
                     .max(Comparator.comparing(PhotoSize::getFileSize))
                     .orElse(null);
+
+            if (largestPhoto == null) return;
 
             final String fileId = largestPhoto.getFileId();
             final String fileName = largestPhoto.getFileUniqueId() + ".jpg";
@@ -64,7 +68,7 @@ public class AddReactionCommand extends BotCommand {
 
         JSONObject jsonObject = new JSONObject(getFile);
         JSONObject path = jsonObject.getJSONObject("result");
-        String file_path = path.getString("file_path");
+        String filePath = path.getString("file_path");
 
         String directoryPath = Bot.CONFIG + "/reactions/replies/" + folder;
         File directory = new File(directoryPath);
@@ -72,14 +76,14 @@ public class AddReactionCommand extends BotCommand {
         if (!directory.exists() && !directory.mkdirs()) {
             throw new IOException("Unable to create directory");
         }
-        streamFile(folder, fileName, file_path);
+        streamFile(folder, fileName, filePath);
 
 
     }
 
-    private void streamFile(String folder, String fileName, String file_path) throws IOException {
+    private void streamFile(String folder, String fileName, String filePath) throws IOException {
         File file = new File(Bot.CONFIG + "/reactions/replies/" + folder + "/" + fileName);
-        InputStream is = new URL("https://api.telegram.org/file/bot" + Bot.BOT_TOKEN + "/" + file_path).openStream();
+        InputStream is = new URL("https://api.telegram.org/file/bot" + Bot.BOT_TOKEN + "/" + filePath).openStream();
 
         FileUtils.copyInputStreamToFile(is, file);
     }
