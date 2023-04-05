@@ -1,26 +1,24 @@
 package io.qmbot.telegrambot;
 
+import java.io.*;
 import java.io.File;
-import java.util.ArrayList;
+import java.net.URL;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+
+import io.qmbot.telegrambot.commandbot.TelegramLongPollingCommandBot;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.commands.DeleteMyCommands;
-import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeChat;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
@@ -59,7 +57,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         File file = files[random.nextInt(files.length)];
         String typeFile = FilenameUtils.getExtension(file.getName());
         try {
-            if (typeFile.equals("png") || typeFile.equals("jpg")) {
+            if (typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("JPEG")) {
                 execute(SendPhoto.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
                         .photo(new InputFile(file)).build());
             } else if (typeFile.equals("mp4") || typeFile.equals("gif")) {
@@ -68,14 +66,6 @@ public class Bot extends TelegramLongPollingCommandBot {
             }
         } catch (TelegramApiException e) {
             logger.error("Failed to execute", e);
-        }
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId());
-        sendMessage.setText(message.getChatId().toString());
-        try {
-            execute(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
         }
     }
 
@@ -86,32 +76,31 @@ public class Bot extends TelegramLongPollingCommandBot {
         register(new HelpCommand());
         register(new FeedbackCommand());
         register(new ShowReactionsCommand());
+        register(new AddReactionCommand());
     }
 
     @Override
     public void processNonCommandUpdate(Update update) {
         logger.info("Update: {}", update);
+        Message message = update.getMessage();
 
-        if (update.getMessage() == null) return;
+        if (message == null) return;
 
-        if (update.getMessage().getNewChatMembers().size() > 0) {
+        if (message.getNewChatMembers().size() > 0) {
             reaction(new File(CONFIG + "/reactions/newMember").listFiles(), update.getMessage());
         }
 
-        if (update.getMessage().getText() == null) return;
+        String text = message.getText();
+
+        if (text == null) return;
 
         File[] arrDirs = new File(CONFIG + "/reactions/replies").listFiles();
         if (arrDirs == null) return;
         for (File dir : arrDirs) {
-            if (update.getMessage().getText().toLowerCase().contains(dir.getName())) {
-                reaction(new File(CONFIG + "/reactions/replies/" + dir.getName()).listFiles(),
-                        update.getMessage());
+            if (text.toLowerCase().contains(dir.getName())) {
+                reaction(new File(CONFIG + "/reactions/replies/" + dir.getName()).listFiles(), message);
             }
         }
-
-//        if (update.getMessage().isCommand())) {
-//
-//        }
     }
 
 

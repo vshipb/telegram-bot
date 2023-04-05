@@ -1,15 +1,16 @@
 package io.qmbot.telegrambot;
 
+import io.qmbot.telegrambot.commandbot.commands.BotCommand;
 import org.apache.commons.io.FilenameUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import java.io.File;
 public class ShowReactionsCommand extends BotCommand {
 
@@ -17,35 +18,8 @@ public class ShowReactionsCommand extends BotCommand {
         super("show_reactions", "Showing reactions");
     }
 
-    @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chat.getId());
-        File[] dir = new File(Bot.CONFIG + "/reactions/newMember").listFiles();
-        String listOfReaction = reactions(dir, absSender, message);
-        message.setText("Мой список приветсвий: \n" + listOfReaction);
-
-        try {
-            absSender.execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-
-        dir = new File(Bot.CONFIG + "/reactions/replies").listFiles();
-        for (File word : dir) {
-            File[] files = word.listFiles();
-            listOfReaction = reactions(files,absSender,message);
-            message.setText("Мой список реакций на " + word.getName() + ": \n" + listOfReaction);
-            try {
-                absSender.execute(message);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public String reactions(File[] files, AbsSender absSender, SendMessage message) {
-        if (files == null) return "На это Аде нечего сказать";
+        if (files.length < 1) return "I have nothing to say to this";
 
         StringBuilder reactions = new StringBuilder();
         for (File file : files) {
@@ -63,13 +37,48 @@ public class ShowReactionsCommand extends BotCommand {
             String typeFile = FilenameUtils.getExtension(file.getName());
 
             try {
-                if (typeFile.equals("png") || typeFile.equals("jpg")) {
-                    absSender.execute(SendPhoto.builder().chatId(message.getChatId()).photo(new InputFile(file)).photo(new InputFile(file))
+                if (typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("JPEG")) {
+                    absSender.execute(SendPhoto.builder().chatId(message.getChatId()).photo(new InputFile(file))
                             .caption(file.getName()).build());
                 } else if (typeFile.equals("mp4") || typeFile.equals("gif")) {
                     absSender.execute(SendAnimation.builder().chatId(message.getChatId()).animation(new InputFile(file))
                             .caption(file.getName()).build());
                 }
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void execute(AbsSender absSender, Message message, String[] arguments) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChat().getId());
+        File[] dir = new File(Bot.CONFIG + "/reactions/newMember").listFiles();
+
+        if (dir == null) return;
+
+        String listOfReaction = reactions(dir, absSender, sendMessage);
+        sendMessage.setText("My hello list: \n" + listOfReaction);
+
+        try {
+            absSender.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+
+        dir = new File(Bot.CONFIG + "/reactions/replies").listFiles();
+        if (dir == null) return;
+
+        for (File word : dir) {
+            File[] files = word.listFiles();
+
+            if (files == null) return;
+
+            listOfReaction = reactions(files,absSender,sendMessage);
+            sendMessage.setText("My list of reactions to " + word.getName() + ": \n" + listOfReaction);
+            try {
+                absSender.execute(sendMessage);
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
