@@ -1,17 +1,15 @@
 package io.qmbot.telegrambot;
 
-import io.qmbot.telegrambot.commandbot.commands.BotCommand;
+import java.io.File;
 import org.apache.commons.io.FilenameUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import java.io.File;
+
 public class ShowReactionsCommand extends BotCommand {
 
     public ShowReactionsCommand() {
@@ -25,7 +23,7 @@ public class ShowReactionsCommand extends BotCommand {
         for (File file : files) {
             reactions.append(file.getName()).append("\n");
         }
-          nameWithReaction(files, message, absSender);
+        nameWithReaction(files, message, absSender);
 
         return reactions.toString();
     }
@@ -75,7 +73,7 @@ public class ShowReactionsCommand extends BotCommand {
 
             if (files == null) return;
 
-            listOfReaction = reactions(files,absSender,sendMessage);
+            listOfReaction = reactions(files, absSender, sendMessage);
             sendMessage.setText("My list of reactions to " + word.getName() + ": \n" + listOfReaction);
             try {
                 absSender.execute(sendMessage);

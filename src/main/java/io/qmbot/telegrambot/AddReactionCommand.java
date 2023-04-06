@@ -1,6 +1,5 @@
 package io.qmbot.telegrambot;
 
-import io.qmbot.telegrambot.commandbot.commands.BotCommand;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

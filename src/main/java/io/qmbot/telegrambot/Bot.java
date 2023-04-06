@@ -1,12 +1,12 @@
 package io.qmbot.telegrambot;
 
-import io.qmbot.telegrambot.commandbot.TelegramLongPollingCommandBot;
 import java.io.File;
 import java.util.Random;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -21,8 +21,6 @@ public class Bot extends TelegramLongPollingCommandBot {
     public static final String CONFIG = System.getProperty("bot.config");
     public static final String BOT_NAME = System.getProperty("bot.name");
     public static final Logger logger = LoggerFactory.getLogger(Bot.class);
-
-  //  public static final String MASTER_ID = System.getProperty("bot.masterId");
 
     public static void main(String[] args) throws TelegramApiException {
         System.out.println("Token: " + BOT_TOKEN);

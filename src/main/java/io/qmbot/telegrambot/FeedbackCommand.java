@@ -1,10 +1,9 @@
 package io.qmbot.telegrambot;
 
-import io.qmbot.telegrambot.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.api.objects.Message;
 
 public class FeedbackCommand extends BotCommand {
 

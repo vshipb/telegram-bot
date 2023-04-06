@@ -1,23 +1,25 @@
-package io.qmbot.telegrambot.commandbot.commands;
+package io.qmbot.telegrambot;
 
+
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
 /**
- * Representation of a command, which can be executed
+ * Representation of a command, which can be executed.
  *
  * @author Timo Schulz (Mit0x2)
  */
 public abstract class BotCommand implements IBotCommand {
-    public final static String COMMAND_INIT_CHARACTER = "/";
+    public static final String COMMAND_INIT_CHARACTER = "/";
     public static final String COMMAND_PARAMETER_SEPARATOR_REGEXP = "\\s+";
-    private final static int COMMAND_MAX_LENGTH = 32;
+    private static final int COMMAND_MAX_LENGTH = 32;
 
     private final String commandIdentifier;
     private final String description;
 
     /**
-     * Construct a command
+     * Construct a command.
      *
      * @param commandIdentifier the unique identifier of this command (e.g. the command string to
      *                          enter into chat)
@@ -34,7 +36,8 @@ public abstract class BotCommand implements IBotCommand {
         }
 
         if (commandIdentifier.length() + 1 > COMMAND_MAX_LENGTH) {
-            throw new IllegalArgumentException("commandIdentifier cannot be longer than " + COMMAND_MAX_LENGTH + " (including " + COMMAND_INIT_CHARACTER + ")");
+            throw new IllegalArgumentException("commandIdentifier cannot be longer than " + COMMAND_MAX_LENGTH
+                    + " (including " + COMMAND_INIT_CHARACTER + ")");
         }
 
         this.commandIdentifier = commandIdentifier.toLowerCase();
@@ -42,7 +45,7 @@ public abstract class BotCommand implements IBotCommand {
     }
 
     /**
-     * Get the identifier of this command
+     * Get the identifier of this command.
      *
      * @return the identifier
      */
@@ -51,7 +54,7 @@ public abstract class BotCommand implements IBotCommand {
     }
 
     /**
-     * Get the description of this command
+     * Get the description of this command.
      *
      * @return the description as String
      */
@@ -61,12 +64,12 @@ public abstract class BotCommand implements IBotCommand {
 
     @Override
     public String toString() {
-        return "<b>" + COMMAND_INIT_CHARACTER + getCommandIdentifier() +
-                "</b>\n" + getDescription();
+        return "<b>" + COMMAND_INIT_CHARACTER + getCommandIdentifier()
+                + "</b>\n" + getDescription();
     }
 
     /**
-     * Process the message and execute the command
+     * Process the message and execute the command.
      *
      * @param absSender absSender to send messages over
      * @param message   the message to process
@@ -77,10 +80,10 @@ public abstract class BotCommand implements IBotCommand {
     }
 
     /**
-     * Execute the command
+     * Execute the command.
      *
      * @param absSender absSender to send messages over
-     * @param message
+     * @param message message
      * @param arguments passed arguments
      */
     public abstract void execute(AbsSender absSender, Message message, String[] arguments);
