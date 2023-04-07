@@ -20,7 +20,8 @@ public class Bot extends TelegramLongPollingCommandBot {
     public static final String BOT_TOKEN = System.getProperty("bot.token");
     public static final String CONFIG = System.getProperty("bot.config");
     public static final String BOT_NAME = System.getProperty("bot.name");
-    public static final Logger logger = LoggerFactory.getLogger(Bot.class);
+    public static final String MASTER_ID = System.getProperty("bot.id");
+    private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 
     public static void main(String[] args) throws TelegramApiException {
         System.out.println("Token: " + BOT_TOKEN);

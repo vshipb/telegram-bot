@@ -11,7 +11,7 @@ public class HelpCommand extends BotCommand {
     }
 
     @Override
-    public void execute(AbsSender absSender, Message message, String[] arguments) {
+    public void execute(AbsSender absSender, Message message, String[] arguments) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
 
         StartCommand startCommand = new StartCommand();
@@ -28,10 +28,8 @@ public class HelpCommand extends BotCommand {
                 + "/" + showReactionsCommand.getCommandIdentifier() + " - " + showReactionsCommand.getDescription() + "\n"
                 + "/" + addReactionCommand.getCommandIdentifier() + " - " + addReactionCommand.getDescription() + "\n"
                 + "/" + aboutCommand.getCommandIdentifier() + " - " + aboutCommand.getDescription() + "\n");
-        try {
-            absSender.execute(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
+
+        absSender.execute(sendMessage);
+
     }
 }

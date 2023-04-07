@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class AddReactionCommand extends BotCommand {
     public AddReactionCommand() {
@@ -22,10 +23,12 @@ public class AddReactionCommand extends BotCommand {
     }
 
     @Override
-    public void execute(AbsSender absSender, Message message, String[] strings) {
+    public void execute(AbsSender absSender, Message message, String[] strings) throws TelegramApiException, IOException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChat().getId());
         sendMessage.setText("Reaction added");
+
+        if (message.getReplyToMessage() == null) return;
 
         List<PhotoSize> photos = message.getReplyToMessage().getPhoto();
         Animation animation = message.getReplyToMessage().getAnimation();
@@ -40,11 +43,8 @@ public class AddReactionCommand extends BotCommand {
             final String fileId = largestPhoto.getFileId();
             final String fileName = largestPhoto.getFileUniqueId() + ".jpg";
 
-            try {
-                fileUpload(fileName, fileId, strings[0]);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            fileUpload(fileName, fileId, strings[0], absSender, sendMessage);
+
         }
 
         if (animation == null) return;
@@ -52,14 +52,13 @@ public class AddReactionCommand extends BotCommand {
         final String fileId = animation.getFileId();
         final String fileName = animation.getFileUniqueId() + ".mp4";
 
-        try {
-            fileUpload(fileName, fileId, strings[0]);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        fileUpload(fileName, fileId, strings[0], absSender, sendMessage);
+
     }
 
-    public void fileUpload(String fileName, String fileId, String folder) throws IOException {
+    public void fileUpload(String fileName, String fileId, String folder, AbsSender absSender, SendMessage sendMessage)
+            throws IOException, TelegramApiException {
+
         URL url = new URL("https://api.telegram.org/bot" + Bot.BOT_TOKEN + "/getFile?file_id=" + fileId);
 
         BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -76,8 +75,7 @@ public class AddReactionCommand extends BotCommand {
             throw new IOException("Unable to create directory");
         }
         streamFile(folder, fileName, filePath);
-
-
+        absSender.execute(sendMessage);
     }
 
     private void streamFile(String folder, String fileName, String filePath) throws IOException {

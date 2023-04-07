@@ -13,16 +13,20 @@ public class FeedbackCommand extends BotCommand {
 
 
     @Override
-    public void execute(AbsSender absSender, Message message, String[] arguments) {
+    public void execute(AbsSender absSender, Message message, String[] arguments) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChat().getId());
+        sendMessage.setChatId(Bot.MASTER_ID);
+        sendMessage.setText(message.getReplyToMessage().getText());
+
+        sendMessage(absSender, sendMessage);
+
+        sendMessage.setChatId(message.getChatId());
         sendMessage.setText("Describe the problem. The message will be sent to the owner of the bot.");
 
-        try {
-            absSender.execute(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
+        sendMessage(absSender, sendMessage);
+    }
 
+    private void sendMessage(AbsSender absSender, SendMessage sendMessage) throws TelegramApiException {
+        absSender.execute(sendMessage);
     }
 }

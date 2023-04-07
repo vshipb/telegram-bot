@@ -1,9 +1,12 @@
 package io.qmbot.telegrambot;
 
-
+import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 /**
  * Representation of a command, which can be executed.
@@ -11,6 +14,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
  * @author Timo Schulz (Mit0x2)
  */
 public abstract class BotCommand implements IBotCommand {
+    private static final Logger logger = LoggerFactory.getLogger(BotCommand.class);
     public static final String COMMAND_INIT_CHARACTER = "/";
     public static final String COMMAND_PARAMETER_SEPARATOR_REGEXP = "\\s+";
     private static final int COMMAND_MAX_LENGTH = 32;
@@ -76,7 +80,11 @@ public abstract class BotCommand implements IBotCommand {
      * @param arguments passed arguments
      */
     public void processMessage(AbsSender absSender, Message message, String[] arguments) {
-        execute(absSender, message, arguments);
+        try {
+            execute(absSender, message, arguments);
+        } catch (TelegramApiException | IOException e) {
+            logger.error("Failed to execute", e);
+        }
     }
 
     /**
@@ -86,5 +94,5 @@ public abstract class BotCommand implements IBotCommand {
      * @param message message
      * @param arguments passed arguments
      */
-    public abstract void execute(AbsSender absSender, Message message, String[] arguments);
+    public abstract void execute(AbsSender absSender, Message message, String[] arguments) throws TelegramApiException, IOException;
 }

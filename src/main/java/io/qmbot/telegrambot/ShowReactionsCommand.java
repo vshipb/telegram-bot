@@ -16,7 +16,7 @@ public class ShowReactionsCommand extends BotCommand {
         super("show_reactions", "Showing reactions");
     }
 
-    public String reactions(File[] files, AbsSender absSender, SendMessage message) {
+    public String reactions(File[] files, AbsSender absSender, SendMessage message) throws TelegramApiException {
         if (files.length < 1) return "I have nothing to say to this";
 
         StringBuilder reactions = new StringBuilder();
@@ -28,28 +28,25 @@ public class ShowReactionsCommand extends BotCommand {
         return reactions.toString();
     }
 
-    public void nameWithReaction(File[] files, SendMessage message, AbsSender absSender) {
+    public void nameWithReaction(File[] files, SendMessage message, AbsSender absSender) throws TelegramApiException {
         for (File file : files) {
             message.setText(file.getName());
 
             String typeFile = FilenameUtils.getExtension(file.getName());
 
-            try {
-                if (typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("JPEG")) {
-                    absSender.execute(SendPhoto.builder().chatId(message.getChatId()).photo(new InputFile(file))
-                            .caption(file.getName()).build());
-                } else if (typeFile.equals("mp4") || typeFile.equals("gif")) {
-                    absSender.execute(SendAnimation.builder().chatId(message.getChatId()).animation(new InputFile(file))
-                            .caption(file.getName()).build());
-                }
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
+            if (typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("JPEG")) {
+                absSender.execute(SendPhoto.builder().chatId(message.getChatId()).photo(new InputFile(file))
+                        .caption(file.getName()).build());
+            } else if (typeFile.equals("mp4") || typeFile.equals("gif")) {
+                absSender.execute(SendAnimation.builder().chatId(message.getChatId()).animation(new InputFile(file))
+                        .caption(file.getName()).build());
             }
+
         }
     }
 
     @Override
-    public void execute(AbsSender absSender, Message message, String[] arguments) {
+    public void execute(AbsSender absSender, Message message, String[] arguments) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChat().getId());
         File[] dir = new File(Bot.CONFIG + "/reactions/newMember").listFiles();
@@ -59,11 +56,9 @@ public class ShowReactionsCommand extends BotCommand {
         String listOfReaction = reactions(dir, absSender, sendMessage);
         sendMessage.setText("My hello list: \n" + listOfReaction);
 
-        try {
-            absSender.execute(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
+
+        absSender.execute(sendMessage);
+
 
         dir = new File(Bot.CONFIG + "/reactions/replies").listFiles();
         if (dir == null) return;
@@ -75,11 +70,9 @@ public class ShowReactionsCommand extends BotCommand {
 
             listOfReaction = reactions(files, absSender, sendMessage);
             sendMessage.setText("My list of reactions to " + word.getName() + ": \n" + listOfReaction);
-            try {
-                absSender.execute(sendMessage);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
+
+            absSender.execute(sendMessage);
+
         }
     }
 }
