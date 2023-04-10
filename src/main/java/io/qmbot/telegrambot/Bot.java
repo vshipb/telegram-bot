@@ -1,5 +1,10 @@
 package io.qmbot.telegrambot;
 
+import io.qmbot.telegrambot.commands.AddReactionCommand;
+import io.qmbot.telegrambot.commands.FeedbackCommand;
+import io.qmbot.telegrambot.commands.HelpCommand;
+import io.qmbot.telegrambot.commands.ShowReactionsCommand;
+import io.qmbot.telegrambot.commands.StartCommand;
 import java.io.File;
 import java.util.Random;
 import org.apache.commons.io.FilenameUtils;

@@ -1,4 +1,4 @@
-package io.qmbot.telegrambot;
+package io.qmbot.telegrambot.commands;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;

@@ -1,11 +1,13 @@
-package io.qmbot.telegrambot;
+package io.qmbot.telegrambot.commands;
 
+import io.qmbot.telegrambot.Bot;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
@@ -23,7 +25,7 @@ public class AddReactionCommand extends BotCommand {
     }
 
     @Override
-    public void execute(AbsSender absSender, Message message, String[] strings) throws TelegramApiException, IOException {
+    public void execute(AbsSender absSender, Message message, String[] arguments) throws TelegramApiException, IOException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChat().getId());
         sendMessage.setText("Reaction added");
@@ -40,28 +42,28 @@ public class AddReactionCommand extends BotCommand {
 
             if (largestPhoto == null) return;
 
-            final String fileId = largestPhoto.getFileId();
-            final String fileName = largestPhoto.getFileUniqueId() + ".jpg";
+            String fileId = largestPhoto.getFileId();
+            String fileName = largestPhoto.getFileUniqueId() + ".jpg";
 
-            fileUpload(fileName, fileId, strings[0], absSender, sendMessage);
+            fileUpload(fileName, fileId, arguments[0], absSender, sendMessage);
 
         }
 
         if (animation == null) return;
 
-        final String fileId = animation.getFileId();
-        final String fileName = animation.getFileUniqueId() + ".mp4";
+        String fileId = animation.getFileId();
+        String fileName = animation.getFileUniqueId() + ".mp4";
 
-        fileUpload(fileName, fileId, strings[0], absSender, sendMessage);
+        fileUpload(fileName, fileId, arguments[0], absSender, sendMessage);
 
     }
 
-    public void fileUpload(String fileName, String fileId, String folder, AbsSender absSender, SendMessage sendMessage)
+    private static void fileUpload(String fileName, String fileId, String folder, AbsSender absSender, SendMessage sendMessage)
             throws IOException, TelegramApiException {
 
         URL url = new URL("https://api.telegram.org/bot" + Bot.BOT_TOKEN + "/getFile?file_id=" + fileId);
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+        BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
         String getFile = br.readLine();
 
         JSONObject jsonObject = new JSONObject(getFile);
@@ -74,11 +76,12 @@ public class AddReactionCommand extends BotCommand {
         if (!directory.exists() && !directory.mkdirs()) {
             throw new IOException("Unable to create directory");
         }
-        streamFile(folder, fileName, filePath);
+        saveFile(folder, fileName, filePath);
+
         absSender.execute(sendMessage);
     }
 
-    private void streamFile(String folder, String fileName, String filePath) throws IOException {
+    private static void saveFile(String folder, String fileName, String filePath) throws IOException {
         File file = new File(Bot.CONFIG + "/reactions/replies/" + folder + "/" + fileName);
         InputStream is = new URL("https://api.telegram.org/file/bot" + Bot.BOT_TOKEN + "/" + filePath).openStream();
 

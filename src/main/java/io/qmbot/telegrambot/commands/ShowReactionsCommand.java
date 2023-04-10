@@ -1,5 +1,6 @@
-package io.qmbot.telegrambot;
+package io.qmbot.telegrambot.commands;
 
+import io.qmbot.telegrambot.Bot;
 import java.io.File;
 import org.apache.commons.io.FilenameUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;

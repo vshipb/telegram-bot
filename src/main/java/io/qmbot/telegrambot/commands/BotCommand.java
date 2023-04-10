@@ -1,4 +1,4 @@
-package io.qmbot.telegrambot;
+package io.qmbot.telegrambot.commands;
 
 import java.io.IOException;
 import org.slf4j.Logger;
@@ -10,13 +10,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 /**
  * Representation of a command, which can be executed.
- *
- * @author Timo Schulz (Mit0x2)
  */
 public abstract class BotCommand implements IBotCommand {
     private static final Logger logger = LoggerFactory.getLogger(BotCommand.class);
     public static final String COMMAND_INIT_CHARACTER = "/";
-    public static final String COMMAND_PARAMETER_SEPARATOR_REGEXP = "\\s+";
     private static final int COMMAND_MAX_LENGTH = 32;
 
     private final String commandIdentifier;
