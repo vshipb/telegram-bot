@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class AboutCommand extends BotCommand {
-    public AboutCommand() {
+    AboutCommand() {
         super("about", "Display information about the bot");
     }
 

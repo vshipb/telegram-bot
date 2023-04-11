@@ -6,6 +6,7 @@ import io.qmbot.telegrambot.commands.HelpCommand;
 import io.qmbot.telegrambot.commands.ShowReactionsCommand;
 import io.qmbot.telegrambot.commands.StartCommand;
 import java.io.File;
+import java.util.Locale;
 import java.util.Random;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -24,12 +25,12 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 public class Bot extends TelegramLongPollingCommandBot {
     public static final String BOT_TOKEN = System.getProperty("bot.token");
     public static final String CONFIG = System.getProperty("bot.config");
-    public static final String BOT_NAME = System.getProperty("bot.name");
+    private static final String BOT_NAME = System.getProperty("bot.name");
     public static final String MASTER_ID = System.getProperty("bot.id");
+    private static final Random random = new Random();
     private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 
     public static void main(String[] args) throws TelegramApiException {
-        System.out.println("Token: " + BOT_TOKEN);
         Bot bot = new Bot(new DefaultBotOptions());
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
         telegramBotsApi.registerBot(bot);
@@ -44,16 +45,11 @@ public class Bot extends TelegramLongPollingCommandBot {
         return BOT_TOKEN;
     }
 
-    @Override
-    public void onRegister() {
-        super.onRegister();
-    }
-
-    public void reaction(File[] files, Message message) {
+    private void reaction(File[] files, Message message) {
         if (files == null) return;
-        Random random = new Random();
+
         File file = files[random.nextInt(files.length)];
-        String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase();
+        String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase(Locale.ROOT);
         try {
             if (typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("jpeg")) {
                 execute(SendPhoto.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
@@ -67,7 +63,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         }
     }
 
-    public Bot(DefaultBotOptions options) {
+    private Bot(DefaultBotOptions options) {
         super(options);
 
         register(new StartCommand());
@@ -84,7 +80,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
         if (message == null) return;
 
-        if (message.getNewChatMembers().size() > 0) {
+        if (!message.getNewChatMembers().isEmpty()) {
             reaction(new File(CONFIG + "/reactions/newMember").listFiles(), update.getMessage());
         }
 
@@ -95,20 +91,9 @@ public class Bot extends TelegramLongPollingCommandBot {
         File[] arrDirs = new File(CONFIG + "/reactions/replies").listFiles();
         if (arrDirs == null) return;
         for (File dir : arrDirs) {
-            if (text.toLowerCase().contains(dir.getName())) {
+            if (text.toLowerCase(Locale.ROOT).contains(dir.getName())) {
                 reaction(new File(CONFIG + "/reactions/replies/" + dir.getName()).listFiles(), message);
             }
         }
-    }
-
-
-    @Override
-    public void processInvalidCommandUpdate(Update update) {
-        super.processInvalidCommandUpdate(update);
-    }
-
-    @Override
-    public boolean filter(Message message) {
-        return super.filter(message);
     }
 }

@@ -1,6 +1,7 @@
 package io.qmbot.telegrambot.commands;
 
 import java.io.IOException;
+import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
@@ -13,7 +14,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
  */
 public abstract class BotCommand implements IBotCommand {
     private static final Logger logger = LoggerFactory.getLogger(BotCommand.class);
-    public static final String COMMAND_INIT_CHARACTER = "/";
+    private static final String COMMAND_INIT_CHARACTER = "/";
     private static final int COMMAND_MAX_LENGTH = 32;
 
     private final String commandIdentifier;
@@ -26,7 +27,7 @@ public abstract class BotCommand implements IBotCommand {
      *                          enter into chat)
      * @param description       the description of this command
      */
-    public BotCommand(String commandIdentifier, String description) {
+    BotCommand(String commandIdentifier, String description) {
 
         if (commandIdentifier == null || commandIdentifier.isEmpty()) {
             throw new IllegalArgumentException("commandIdentifier for command cannot be null or empty");
@@ -41,7 +42,7 @@ public abstract class BotCommand implements IBotCommand {
                     + " (including " + COMMAND_INIT_CHARACTER + ")");
         }
 
-        this.commandIdentifier = commandIdentifier.toLowerCase();
+        this.commandIdentifier = commandIdentifier.toLowerCase(Locale.ROOT);
         this.description = description;
     }
 
@@ -50,7 +51,7 @@ public abstract class BotCommand implements IBotCommand {
      *
      * @return the identifier
      */
-    public final String getCommandIdentifier() {
+    public String getCommandIdentifier() {
         return commandIdentifier;
     }
 
@@ -59,7 +60,7 @@ public abstract class BotCommand implements IBotCommand {
      *
      * @return the description as String
      */
-    public final String getDescription() {
+    public String getDescription() {
         return description;
     }
 

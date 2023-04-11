@@ -17,7 +17,7 @@ public class ShowReactionsCommand extends BotCommand {
         super("show_reactions", "Showing reactions");
     }
 
-    public String reactions(File[] files, AbsSender absSender, SendMessage message) throws TelegramApiException {
+    private static String reactions(File[] files, AbsSender absSender, SendMessage message) throws TelegramApiException {
         if (files.length < 1) return "I have nothing to say to this";
 
         StringBuilder reactions = new StringBuilder();
@@ -29,7 +29,7 @@ public class ShowReactionsCommand extends BotCommand {
         return reactions.toString();
     }
 
-    public void nameWithReaction(File[] files, SendMessage message, AbsSender absSender) throws TelegramApiException {
+    private static void nameWithReaction(File[] files, SendMessage message, AbsSender absSender) throws TelegramApiException {
         for (File file : files) {
             message.setText(file.getName());
 

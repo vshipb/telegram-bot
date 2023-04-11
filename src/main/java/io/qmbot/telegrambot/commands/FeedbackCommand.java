@@ -1,7 +1,6 @@
 package io.qmbot.telegrambot.commands;
 
 import io.qmbot.telegrambot.Bot;
-import io.qmbot.telegrambot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -20,15 +19,11 @@ public class FeedbackCommand extends BotCommand {
         sendMessage.setChatId(Bot.MASTER_ID);
         sendMessage.setText(message.getReplyToMessage().getText());
 
-        sendMessage(absSender, sendMessage);
+        absSender.execute(sendMessage);
 
         sendMessage.setChatId(message.getChatId());
         sendMessage.setText("Describe the problem. The message will be sent to the owner of the bot.");
 
-        sendMessage(absSender, sendMessage);
-    }
-
-    private void sendMessage(AbsSender absSender, SendMessage sendMessage) throws TelegramApiException {
         absSender.execute(sendMessage);
     }
 }
