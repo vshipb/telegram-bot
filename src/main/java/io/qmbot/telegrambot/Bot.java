@@ -13,14 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 public class Bot extends TelegramLongPollingCommandBot {
     public static final String BOT_TOKEN = System.getProperty("bot.token");
@@ -29,12 +27,6 @@ public class Bot extends TelegramLongPollingCommandBot {
     public static final String MASTER_ID = System.getProperty("bot.id");
     private static final Random random = new Random();
     private static final Logger logger = LoggerFactory.getLogger(Bot.class);
-
-    public static void main(String[] args) throws TelegramApiException {
-        Bot bot = new Bot(new DefaultBotOptions());
-        TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-        telegramBotsApi.registerBot(bot);
-    }
 
     @Override
     public String getBotUsername() {
@@ -63,7 +55,7 @@ public class Bot extends TelegramLongPollingCommandBot {
         }
     }
 
-    private Bot(DefaultBotOptions options) {
+    Bot(DefaultBotOptions options) {
         super(options);
 
         register(new StartCommand());
