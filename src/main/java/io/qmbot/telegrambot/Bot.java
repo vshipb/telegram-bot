@@ -1,5 +1,8 @@
 package io.qmbot.telegrambot;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qmbot.telegrambot.commands.AddReactionCommand;
 import io.qmbot.telegrambot.commands.FeedbackCommand;
 import io.qmbot.telegrambot.commands.HelpCommand;
@@ -26,6 +29,7 @@ public class Bot extends TelegramLongPollingCommandBot {
     private static final String BOT_NAME = System.getProperty("bot.name");
     public static final String MASTER_ID = System.getProperty("bot.id");
     private static final Random random = new Random();
+    private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 
     @Override
@@ -58,6 +62,8 @@ public class Bot extends TelegramLongPollingCommandBot {
     Bot(DefaultBotOptions options) {
         super(options);
 
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
         register(new StartCommand());
         register(new HelpCommand());
         register(new FeedbackCommand());
@@ -67,7 +73,7 @@ public class Bot extends TelegramLongPollingCommandBot {
 
     @Override
     public void processNonCommandUpdate(Update update) {
-        logger.info("Update: {}", update);
+        logger.info("Update: {}", objectToString(update));
         Message message = update.getMessage();
 
         if (message == null) return;
@@ -86,6 +92,14 @@ public class Bot extends TelegramLongPollingCommandBot {
             if (text.toLowerCase(Locale.ROOT).contains(dir.getName())) {
                 reaction(new File(CONFIG + "/reactions/replies/" + dir.getName()).listFiles(), message);
             }
+        }
+    }
+
+    private static String objectToString(Object o) {
+        try {
+            return mapper.writeValueAsString(o);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
         }
     }
 }
