@@ -1,10 +1,11 @@
 package io.qmbot.telegrambot.commands;
 
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
+@Component
 public class HelpCommand extends BotCommand {
     public HelpCommand() {
         super("help", "Test");

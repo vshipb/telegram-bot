@@ -12,13 +12,14 @@ import java.util.Comparator;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
+@Component
 public class AddReactionCommand extends BotCommand {
     public AddReactionCommand() {
         super("add_reaction", "Add reaction");
@@ -70,7 +71,7 @@ public class AddReactionCommand extends BotCommand {
         JSONObject path = jsonObject.getJSONObject("result");
         String filePath = path.getString("file_path");
 
-        String directoryPath = Bot.CONFIG + "/reactions/replies/" + folder;
+        String directoryPath = Bot.CONFIG + Bot.repliesFolder +"/" + folder;
         File directory = new File(directoryPath);
 
         if (!directory.exists() && !directory.mkdirs()) {
@@ -82,7 +83,7 @@ public class AddReactionCommand extends BotCommand {
     }
 
     private static void saveFile(String folder, String fileName, String filePath) throws IOException {
-        File file = new File(Bot.CONFIG + "/reactions/replies/" + folder + "/" + fileName);
+        File file = new File(Bot.CONFIG + Bot.repliesFolder +"/" + folder + "/" + fileName);
         InputStream is = new URL("https://api.telegram.org/file/bot" + Bot.BOT_TOKEN + "/" + filePath).openStream();
 
         FileUtils.copyInputStreamToFile(is, file);
