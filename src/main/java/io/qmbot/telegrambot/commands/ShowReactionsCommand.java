@@ -2,7 +2,9 @@ package io.qmbot.telegrambot.commands;
 
 import io.qmbot.telegrambot.Bot;
 import java.io.File;
+import java.util.Locale;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -11,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+@Component
 public class ShowReactionsCommand extends BotCommand {
 
     public ShowReactionsCommand() {
@@ -33,12 +36,12 @@ public class ShowReactionsCommand extends BotCommand {
         for (File file : files) {
             message.setText(file.getName());
 
-            String typeFile = FilenameUtils.getExtension(file.getName());
+            String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase(Locale.ROOT);
 
-            if (typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("JPEG")) {
+            if (Bot.fileIsPhoto(typeFile)) {
                 absSender.execute(SendPhoto.builder().chatId(message.getChatId()).photo(new InputFile(file))
                         .caption(file.getName()).build());
-            } else if (typeFile.equals("mp4") || typeFile.equals("gif")) {
+            } else if (Bot.fileIsAnimation(typeFile)) {
                 absSender.execute(SendAnimation.builder().chatId(message.getChatId()).animation(new InputFile(file))
                         .caption(file.getName()).build());
             }
@@ -50,7 +53,7 @@ public class ShowReactionsCommand extends BotCommand {
     public void execute(AbsSender absSender, Message message, String[] arguments) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChat().getId());
-        File[] dir = new File(Bot.CONFIG + "/reactions/newMember").listFiles();
+        File[] dir = new File(Bot.CONFIG + Bot.newMemberFolder).listFiles();
 
         if (dir == null) return;
 
@@ -61,7 +64,7 @@ public class ShowReactionsCommand extends BotCommand {
         absSender.execute(sendMessage);
 
 
-        dir = new File(Bot.CONFIG + "/reactions/replies").listFiles();
+        dir = new File(Bot.CONFIG + Bot.repliesFolder).listFiles();
         if (dir == null) return;
 
         for (File word : dir) {

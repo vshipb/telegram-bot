@@ -1,5 +1,6 @@
 package io.qmbot.telegrambot.commands;
 
+import io.qmbot.telegrambot.Bot;
 import java.io.IOException;
 import java.util.Locale;
 import org.slf4j.Logger;
@@ -81,7 +82,7 @@ public abstract class BotCommand implements IBotCommand {
         try {
             execute(absSender, message, arguments);
         } catch (TelegramApiException | IOException e) {
-            logger.error("Failed to execute", e);
+            logger.error(Bot.failedToExecute, e);
         }
     }
 
