@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 @Component
 public class AboutCommand extends BotCommand {
     AboutCommand() {
@@ -16,8 +17,6 @@ public class AboutCommand extends BotCommand {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChat().getId());
         sendMessage.setText(getDescription());
-
         absSender.execute(sendMessage);
-
     }
 }

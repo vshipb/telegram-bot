@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.games.Animation;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 @Component
 public class AddReactionCommand extends BotCommand {
     public AddReactionCommand() {
@@ -71,7 +72,7 @@ public class AddReactionCommand extends BotCommand {
         JSONObject path = jsonObject.getJSONObject("result");
         String filePath = path.getString("file_path");
 
-        String directoryPath = Bot.CONFIG + Bot.repliesFolder +"/" + folder;
+        String directoryPath = Bot.CONFIG + Bot.repliesFolder + "/" + folder;
         File directory = new File(directoryPath);
 
         if (!directory.exists() && !directory.mkdirs()) {
@@ -83,7 +84,7 @@ public class AddReactionCommand extends BotCommand {
     }
 
     private static void saveFile(String folder, String fileName, String filePath) throws IOException {
-        File file = new File(Bot.CONFIG + Bot.repliesFolder +"/" + folder + "/" + fileName);
+        File file = new File(Bot.CONFIG + Bot.repliesFolder + "/" + folder + "/" + fileName);
         InputStream is = new URL("https://api.telegram.org/file/bot" + Bot.BOT_TOKEN + "/" + filePath).openStream();
 
         FileUtils.copyInputStreamToFile(is, file);

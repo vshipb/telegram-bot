@@ -1,9 +1,8 @@
 package io.qmbot.telegrambot.commands;
 
+import io.qmbot.telegrambot.Bot;
 import java.io.IOException;
 import java.util.Locale;
-
-import io.qmbot.telegrambot.Bot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;

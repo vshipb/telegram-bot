@@ -3,30 +3,30 @@ package io.qmbot.telegrambot;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.qmbot.telegrambot.commands.AddReactionCommand;
-import io.qmbot.telegrambot.commands.FeedbackCommand;
-import io.qmbot.telegrambot.commands.HelpCommand;
-import io.qmbot.telegrambot.commands.ShowReactionsCommand;
-import io.qmbot.telegrambot.commands.StartCommand;
+import io.qmbot.telegrambot.commands.BotCommand;
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 @Component
-public class Bot extends TelegramLongPollingCommandBot {
+public class Bot extends TelegramLongPollingCommandBot implements InitializingBean {
     public static final String BOT_TOKEN = System.getProperty("bot.token");
     public static final String CONFIG = System.getProperty("bot.config");
     private static final String BOT_NAME = System.getProperty("bot.name");
@@ -37,6 +37,15 @@ public class Bot extends TelegramLongPollingCommandBot {
     public static final String failedToExecute = "Failed to execute";
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(Bot.class);
+
+    @Autowired
+    Bot(List<BotCommand> commands) {
+        super(new DefaultBotOptions());
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        for (BotCommand cmd : commands) {
+            register(cmd);
+        }
+    }
 
     @Override
     public String getBotUsername() {
@@ -63,18 +72,6 @@ public class Bot extends TelegramLongPollingCommandBot {
         } catch (TelegramApiException e) {
             logger.error(failedToExecute, e);
         }
-    }
-    @Autowired
-    Bot(DefaultBotOptions options, StartCommand startCommand, HelpCommand command) {
-        super(options);
-
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-        register(startCommand);
-        register(command);
-        register(new FeedbackCommand());
-        register(new ShowReactionsCommand());
-        register(new AddReactionCommand());
     }
 
     @Override
@@ -118,4 +115,9 @@ public class Bot extends TelegramLongPollingCommandBot {
         return typeFile.equals("mp4") || typeFile.equals("gif");
     }
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
+        telegramBotsApi.registerBot(this);
+    }
 }
