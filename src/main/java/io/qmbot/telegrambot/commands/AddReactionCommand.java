@@ -27,6 +27,7 @@ public class AddReactionCommand extends BotCommand {
     private String botToken;
     @Value("${bot.config}")
     private String config;
+
     public AddReactionCommand() {
         super("add_reaction", "Add reaction");
     }
