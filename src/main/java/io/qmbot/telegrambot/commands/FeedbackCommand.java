@@ -1,6 +1,7 @@
 package io.qmbot.telegrambot.commands;
 
 import io.qmbot.telegrambot.Bot;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -9,6 +10,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
 public class FeedbackCommand extends BotCommand {
+    @Value("${bot.id}")
+    private String masterId;
 
     public FeedbackCommand() {
         super("feedback", "Provide feedback or report issues with the bot");
@@ -18,7 +21,7 @@ public class FeedbackCommand extends BotCommand {
     @Override
     public void execute(AbsSender absSender, Message message, String[] arguments) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(Bot.MASTER_ID);
+        sendMessage.setChatId(masterId);
         sendMessage.setText(message.getReplyToMessage().getText());
 
         absSender.execute(sendMessage);
