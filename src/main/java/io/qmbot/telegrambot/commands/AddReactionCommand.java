@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -22,6 +23,11 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
 public class AddReactionCommand extends BotCommand {
+    @Value("${bot.token}")
+    private String botToken;
+    @Value("${bot.config}")
+    private String config;
+
     public AddReactionCommand() {
         super("add_reaction", "Add reaction");
     }
@@ -60,10 +66,10 @@ public class AddReactionCommand extends BotCommand {
 
     }
 
-    private static void fileUpload(String fileName, String fileId, String folder, AbsSender absSender, SendMessage sendMessage)
+    private void fileUpload(String fileName, String fileId, String folder, AbsSender absSender, SendMessage sendMessage)
             throws IOException, TelegramApiException {
 
-        URL url = new URL("https://api.telegram.org/bot" + Bot.BOT_TOKEN + "/getFile?file_id=" + fileId);
+        URL url = new URL("https://api.telegram.org/bot" + botToken + "/getFile?file_id=" + fileId);
 
         BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8));
         String getFile = br.readLine();
@@ -72,7 +78,7 @@ public class AddReactionCommand extends BotCommand {
         JSONObject path = jsonObject.getJSONObject("result");
         String filePath = path.getString("file_path");
 
-        String directoryPath = Bot.CONFIG + Bot.repliesFolder + "/" + folder;
+        String directoryPath = config + Bot.repliesFolder + "/" + folder;
         File directory = new File(directoryPath);
 
         if (!directory.exists() && !directory.mkdirs()) {
@@ -83,9 +89,9 @@ public class AddReactionCommand extends BotCommand {
         absSender.execute(sendMessage);
     }
 
-    private static void saveFile(String folder, String fileName, String filePath) throws IOException {
-        File file = new File(Bot.CONFIG + Bot.repliesFolder + "/" + folder + "/" + fileName);
-        InputStream is = new URL("https://api.telegram.org/file/bot" + Bot.BOT_TOKEN + "/" + filePath).openStream();
+    private void saveFile(String folder, String fileName, String filePath) throws IOException {
+        File file = new File(config + Bot.repliesFolder + "/" + folder + "/" + fileName);
+        InputStream is = new URL("https://api.telegram.org/file/bot" + botToken + "/" + filePath).openStream();
 
         FileUtils.copyInputStreamToFile(is, file);
     }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
@@ -27,10 +28,12 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot implements InitializingBean {
-    public static final String BOT_TOKEN = System.getProperty("bot.token");
-    public static final String CONFIG = System.getProperty("bot.config");
-    private static final String BOT_NAME = System.getProperty("bot.name");
-    public static final String MASTER_ID = System.getProperty("bot.id");
+    @Value("${bot.token}")
+    private String botToken;
+    @Value("${bot.config}")
+    private String config;
+    @Value("${bot.name}")
+    private String botName;
     private static final Random random = new Random();
     public static final String newMemberFolder = "/reactions/newMember";
     public static final String repliesFolder = "/reactions/replies";
@@ -49,11 +52,11 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
 
     @Override
     public String getBotUsername() {
-        return BOT_NAME;
+        return botName;
     }
 
     public String getBotToken() {
-        return BOT_TOKEN;
+        return botToken;
     }
 
     private void reaction(File[] files, Message message) {
@@ -62,10 +65,10 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
         File file = files[random.nextInt(files.length)];
         String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase(Locale.ROOT);
         try {
-            if (fileIsPhoto(typeFile)) {
+            if (isPhoto(typeFile)) {
                 execute(SendPhoto.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
                         .photo(new InputFile(file)).build());
-            } else if (fileIsAnimation(typeFile)) {
+            } else if (isAnimation(typeFile)) {
                 execute(SendAnimation.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
                         .animation(new InputFile(file)).build());
             }
@@ -82,18 +85,18 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
         if (message == null) return;
 
         if (!message.getNewChatMembers().isEmpty()) {
-            reaction(new File(CONFIG + newMemberFolder).listFiles(), update.getMessage());
+            reaction(new File(config + newMemberFolder).listFiles(), update.getMessage());
         }
 
         String text = message.getText();
 
         if (text == null) return;
 
-        File[] arrDirs = new File(CONFIG + repliesFolder).listFiles();
+        File[] arrDirs = new File(config + repliesFolder).listFiles();
         if (arrDirs == null) return;
         for (File dir : arrDirs) {
             if (text.toLowerCase(Locale.ROOT).contains(dir.getName())) {
-                reaction(new File(CONFIG + repliesFolder + "/" + dir.getName()).listFiles(), message);
+                reaction(new File(config + repliesFolder + "/" + dir.getName()).listFiles(), message);
             }
         }
     }
@@ -106,17 +109,17 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
         }
     }
 
-    public static boolean fileIsPhoto(String typeFile) {
+    public static boolean isPhoto(String typeFile) {
         return typeFile.equals("png") || typeFile.equals("jpg") || typeFile.equals("jpeg");
 
     }
 
-    public static boolean fileIsAnimation(String typeFile) {
+    public static boolean isAnimation(String typeFile) {
         return typeFile.equals("mp4") || typeFile.equals("gif");
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() throws TelegramApiException {
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
         telegramBotsApi.registerBot(this);
     }

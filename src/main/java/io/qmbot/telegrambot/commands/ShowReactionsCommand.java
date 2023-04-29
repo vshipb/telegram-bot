@@ -4,6 +4,7 @@ import io.qmbot.telegrambot.Bot;
 import java.io.File;
 import java.util.Locale;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -15,6 +16,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
 public class ShowReactionsCommand extends BotCommand {
+    @Value("${bot.config}")
+    private String config;
 
     public ShowReactionsCommand() {
         super("show_reactions", "Showing reactions");
@@ -38,10 +41,10 @@ public class ShowReactionsCommand extends BotCommand {
 
             String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase(Locale.ROOT);
 
-            if (Bot.fileIsPhoto(typeFile)) {
+            if (Bot.isPhoto(typeFile)) {
                 absSender.execute(SendPhoto.builder().chatId(message.getChatId()).photo(new InputFile(file))
                         .caption(file.getName()).build());
-            } else if (Bot.fileIsAnimation(typeFile)) {
+            } else if (Bot.isAnimation(typeFile)) {
                 absSender.execute(SendAnimation.builder().chatId(message.getChatId()).animation(new InputFile(file))
                         .caption(file.getName()).build());
             }
@@ -53,7 +56,7 @@ public class ShowReactionsCommand extends BotCommand {
     public void execute(AbsSender absSender, Message message, String[] arguments) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChat().getId());
-        File[] dir = new File(Bot.CONFIG + Bot.newMemberFolder).listFiles();
+        File[] dir = new File(config + Bot.newMemberFolder).listFiles();
 
         if (dir == null) return;
 
@@ -64,7 +67,7 @@ public class ShowReactionsCommand extends BotCommand {
         absSender.execute(sendMessage);
 
 
-        dir = new File(Bot.CONFIG + Bot.repliesFolder).listFiles();
+        dir = new File(config + Bot.repliesFolder).listFiles();
         if (dir == null) return;
 
         for (File word : dir) {
