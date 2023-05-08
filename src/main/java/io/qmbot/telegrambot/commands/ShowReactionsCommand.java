@@ -16,7 +16,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
 public class ShowReactionsCommand extends BotCommand {
-    @Value("${bot.config}")
+    @Value(Bot.BOT_CONFIG)
     private String config;
 
     public ShowReactionsCommand() {

@@ -23,9 +23,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
 public class AddReactionCommand extends BotCommand {
-    @Value("${bot.token}")
+    @Value(Bot.BOT_TOKEN)
     private String botToken;
-    @Value("${bot.config}")
+    @Value(Bot.BOT_CONFIG)
     private String config;
 
     public AddReactionCommand() {

@@ -28,12 +28,15 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot implements InitializingBean {
-    @Value("${bot.token}")
+    public static final String BOT_TOKEN = "${bot.token}";
+    public static final String BOT_CONFIG = "${bot.config}";
+    @Value(BOT_TOKEN)
     private String botToken;
-    @Value("${bot.config}")
+    @Value(BOT_CONFIG)
     private String config;
     @Value("${bot.name}")
     private String botName;
+
     private static final Random random = new Random();
     public static final String newMemberFolder = "/reactions/newMember";
     public static final String repliesFolder = "/reactions/replies";
