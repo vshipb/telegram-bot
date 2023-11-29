@@ -4,10 +4,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qmbot.telegrambot.commands.BotCommand;
-import java.io.File;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+
+import java.io.*;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.extensions.bots.commandbot.CommandBot;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -28,6 +34,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 @Component
 public class Bot extends TelegramLongPollingCommandBot implements InitializingBean {
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     public static final String BOT_TOKEN = "${bot.token}";
     public static final String BOT_CONFIG = "${bot.config}";
     @Value(BOT_TOKEN)
@@ -38,6 +45,8 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
     private String botName;
 
     private static final Random random = new Random();
+    public static final String birthdaysFolder = "/reactions/birthday";
+    public static final String chatsFolder = "/chats";
     public static final String newMemberFolder = "/reactions/newMember";
     public static final String repliesFolder = "/reactions/replies";
     public static final String failedToExecute = "Failed to execute";
@@ -47,6 +56,13 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
     @Autowired
     Bot(List<BotCommand> commands) {
         super(new DefaultBotOptions());
+//        scheduler.scheduleAtFixedRate(() -> {
+//            try {
+//                checkCalendar();
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }, 0L, 1L, TimeUnit.MINUTES);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         for (BotCommand cmd : commands) {
             register(cmd);
@@ -62,22 +78,78 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
         return botToken;
     }
 
-    private void reaction(File[] files, Message message) {
+    private void reactionToMessage(File[] files, Message message) {
+        if (files == null) return;
+        Long chatId = message.getChatId();
+        Integer messageId = message.getMessageId();
+
+        File file = files[random.nextInt(files.length)];
+        String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase(Locale.ROOT);
+        try {
+            if (isPhoto(typeFile)) {
+                execute(SendPhoto.builder().chatId(chatId).replyToMessageId(messageId).photo(new InputFile(file)).build());
+            } else if (isAnimation(typeFile)) {
+                execute(SendAnimation.builder().chatId(chatId).replyToMessageId(messageId).animation(new InputFile(file))
+                        .build());
+            }
+        } catch (TelegramApiException e) {
+            logger.error(failedToExecute, e);
+        }
+    }
+
+
+    private void congrats(File[] files, String chatId, String user) {
         if (files == null) return;
 
         File file = files[random.nextInt(files.length)];
         String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase(Locale.ROOT);
         try {
             if (isPhoto(typeFile)) {
-                execute(SendPhoto.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
-                        .photo(new InputFile(file)).build());
+                execute(SendPhoto.builder().chatId(chatId).photo(new InputFile(file)).build());
             } else if (isAnimation(typeFile)) {
-                execute(SendAnimation.builder().chatId(message.getChatId()).replyToMessageId(message.getMessageId())
-                        .animation(new InputFile(file)).build());
+                execute(SendAnimation.builder().chatId(chatId).animation(new InputFile(file)).build());
             }
         } catch (TelegramApiException e) {
             logger.error(failedToExecute, e);
         }
+
+        SendMessage sendMessage = new SendMessage(chatId, "Happy Birthday, @" + user + "!");
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void checkCalendar() throws IOException {
+        //String pattern = "yyyy-MM-dd";
+        LocalDate currentDate = LocalDate.now();
+        String currentDateString = currentDate.toString().substring(5);
+        File[] chats = new File(config + chatsFolder).listFiles();
+        for (File chat : chats) {
+            String chatId = chat.getName();
+            Map<String, String> users = users(new File(config + chatsFolder + "/" + chatId + ".txt"));
+            for (String user : users.keySet()) {
+                String birthdayDateString = users.get(user);
+                if (currentDateString.equals(birthdayDateString)) {
+                    congrats(new File(config + birthdaysFolder).listFiles(), chatId, user);
+                }
+            }
+        }
+    }
+
+    private Map<String, String> users(File input) throws IOException {
+        FileReader fileReader = new FileReader(input);
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        String[] splitString = bufferedReader.readLine().split("\n");
+        bufferedReader.close();
+        fileReader.close();
+        Map<String, String> users = new HashMap<>();
+        for (String user : splitString) {
+            String[] data = user.split(" ");
+            users.put(data[0], data[1]);
+        }
+        return users;
     }
 
     @Override
@@ -88,7 +160,7 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
         if (message == null) return;
 
         if (!message.getNewChatMembers().isEmpty()) {
-            reaction(new File(config + newMemberFolder).listFiles(), update.getMessage());
+            reactionToMessage(new File(config + newMemberFolder).listFiles(), update.getMessage());
         }
 
         String text = message.getText();
@@ -99,7 +171,7 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
         if (arrDirs == null) return;
         for (File dir : arrDirs) {
             if (text.toLowerCase(Locale.ROOT).contains(dir.getName())) {
-                reaction(new File(config + repliesFolder + "/" + dir.getName()).listFiles(), message);
+                reactionToMessage(new File(config + repliesFolder + "/" + dir.getName()).listFiles(), message);
             }
         }
     }
