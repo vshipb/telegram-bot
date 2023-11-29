@@ -46,7 +46,7 @@ public class ScheduledTasks {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-    @Scheduled(fixedRate = 5000, initialDelay = 0L)
+    @Scheduled(fixedRate = 1000 * 60 * 60 * 24, initialDelay = 0L)
     public void reportCurrentTime() throws IOException {
         log.info("The time is now {}", dateFormat.format(new Date()));
         checkCalendar();
