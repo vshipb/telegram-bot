@@ -5,9 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -18,14 +18,22 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.text.ParseException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.qmbot.telegrambot.Bot.*;
 
 @Component
 public class ScheduledTasks {
+    private static final Pattern COMPILE = Pattern.compile("\\R");
 
     @Autowired
     public ScheduledTasks(@Value(BOT_CONFIG) String config, Bot bot) {
@@ -33,23 +41,41 @@ public class ScheduledTasks {
         this.bot = bot;
     }
 
-    //@Value(BOT_CONFIG)
-    private String config;
+    @Value("${targetTime}")
+    private String targetTimeStr;
 
-   // @Autowired
-    private Bot bot;
+    //@Value(BOT_CONFIG)
+    private final String config;
+
+    // @Autowired
+    private final Bot bot;
 
     private static final Random random = new Random();
-    public static final String chatsFolder = "/chats";
-    public static final String birthdaysFolder = "/reactions/birthday";
+    private static final String chatsFolder = "/chats";
+    private static final String birthdaysFolder = "/reactions/birthday";
     private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-    @Scheduled(fixedRate = 1000 * 60 * 60 * 24, initialDelay = 0L)
+    @Scheduled(fixedRate = 1000 * 60 * 60 * 24, initialDelayString="#{initialDelayCalculate}")
     public void reportCurrentTime() throws IOException {
         log.info("The time is now {}", dateFormat.format(new Date()));
         checkCalendar();
+    }
+
+    @Bean
+    public long initialDelayCalculate(){
+        long l = parse(targetTimeStr);
+        l = l - System.currentTimeMillis();
+        return l;
+    }
+
+    public static long parse(String source) {
+        try {
+            return dateFormat.parse(source).getTime();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void checkCalendar() throws IOException {
@@ -59,7 +85,7 @@ public class ScheduledTasks {
         File[] chats = new File(config + chatsFolder).listFiles();
         for (File chat : chats) {
             String chatId = chat.getName().substring(0, chat.getName().length() - 4);
-            Map<String, String> users = users(new File(config + chatsFolder + "/" + chatId + ".txt"));
+            Map<String, String> users = users(Path.of(config + chatsFolder + "/" + chatId + ".txt"));
             for (String user : users.keySet()) {
                 String birthdayDateString = users.get(user);
                 if (currentDateString.equals(birthdayDateString)) {
@@ -68,6 +94,7 @@ public class ScheduledTasks {
             }
         }
     }
+
     private void congrats(File[] files, String chatId, String user) {
         if (files == null) return;
 
@@ -91,17 +118,10 @@ public class ScheduledTasks {
         }
     }
 
-    private Map<String, String> users(File input) throws IOException {
-        FileReader fileReader = new FileReader(input);
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
-        String[] splitString = bufferedReader.readLine().split("\n");
-        bufferedReader.close();
-        fileReader.close();
-        Map<String, String> users = new HashMap<>();
-        for (String user : splitString) {
-            String[] data = user.split(" ");
-            users.put(data[0], data[1]);
+    private Map<String, String> users(Path path) throws IOException {
+        try (Stream<String> lines = Files.lines(path)) {
+            return lines.map(line -> line.split(" ", 2))
+                    .collect(Collectors.toMap(arr -> arr[0], arr -> arr[1].trim()));
         }
-        return users;
     }
 }

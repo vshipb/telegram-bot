@@ -56,13 +56,6 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
     @Autowired
     Bot(List<BotCommand> commands) {
         super(new DefaultBotOptions());
-//        scheduler.scheduleAtFixedRate(() -> {
-//            try {
-//                checkCalendar();
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }, 0L, 1L, TimeUnit.MINUTES);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         for (BotCommand cmd : commands) {
             register(cmd);
@@ -118,23 +111,6 @@ public class Bot extends TelegramLongPollingCommandBot implements InitializingBe
             execute(sendMessage);
         } catch (TelegramApiException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void checkCalendar() throws IOException {
-        //String pattern = "yyyy-MM-dd";
-        LocalDate currentDate = LocalDate.now();
-        String currentDateString = currentDate.toString().substring(5);
-        File[] chats = new File(config + chatsFolder).listFiles();
-        for (File chat : chats) {
-            String chatId = chat.getName();
-            Map<String, String> users = users(new File(config + chatsFolder + "/" + chatId + ".txt"));
-            for (String user : users.keySet()) {
-                String birthdayDateString = users.get(user);
-                if (currentDateString.equals(birthdayDateString)) {
-                    congrats(new File(config + birthdaysFolder).listFiles(), chatId, user);
-                }
-            }
         }
     }
 
