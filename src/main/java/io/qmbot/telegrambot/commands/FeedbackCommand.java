@@ -22,12 +22,9 @@ public class FeedbackCommand extends BotCommand {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(masterId);
         sendMessage.setText(message.getReplyToMessage().getText());
-
         absSender.execute(sendMessage);
-
         sendMessage.setChatId(message.getChatId());
         sendMessage.setText("Describe the problem. The message will be sent to the owner of the bot.");
-
         absSender.execute(sendMessage);
     }
 }

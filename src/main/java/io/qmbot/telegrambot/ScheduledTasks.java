@@ -14,14 +14,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
-import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -41,19 +37,19 @@ public class ScheduledTasks {
         this.bot = bot;
     }
 
-    @Value("${targetTime}")
-    private String targetTimeStr;
+    @Autowired
+    private ChatConfiguration chatConfiguration;
 
     //@Value(BOT_CONFIG)
     private final String config;
 
     // @Autowired
-    private final Bot bot;
+    @Autowired
+    private Bot bot;
 
     private static final Random random = new Random();
-    private static final String chatsFolder = "/chats";
-    private static final String birthdaysFolder = "/reactions/birthday";
-    private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
+    private final String membersFile = Bot.membersFile;
+    private  final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -64,10 +60,8 @@ public class ScheduledTasks {
     }
 
     @Bean
-    public long initialDelayCalculate(){
-        long l = parse(targetTimeStr);
-        l = l - System.currentTimeMillis();
-        return l;
+    public long initialDelayCalculate(@Value("${targetTime}") String targetTimeStr){
+        return parse(targetTimeStr) - System.currentTimeMillis();
     }
 
     public static long parse(String source) {
@@ -82,29 +76,30 @@ public class ScheduledTasks {
         //String pattern = "yyyy-MM-dd";
         LocalDate currentDate = LocalDate.now();
         String currentDateString = currentDate.toString().substring(5);
-        File[] chats = new File(config + chatsFolder).listFiles();
-        for (File chat : chats) {
-            String chatId = chat.getName().substring(0, chat.getName().length() - 4);
-            Map<String, String> users = users(Path.of(config + chatsFolder + "/" + chatId + ".txt"));
-            for (String user : users.keySet()) {
-                String birthdayDateString = users.get(user);
-                if (currentDateString.equals(birthdayDateString)) {
-                    congrats(new File(config + birthdaysFolder).listFiles(), chatId, user);
+        for (Path chat : bot.getChats()) {
+            String chatId = chat.getFileName().toString().substring(0, chat.getFileName().toString().length());
+            if (chatConfiguration.isBirthdayEnabled(Long.parseLong(chatId))) {
+                Map<String, String> members = users(Path.of(String.valueOf(bot.chatsFolder), chatId, membersFile));
+                for (String member : members.keySet()) {
+                    String birthdayDateString = members.get(member);
+                    if (currentDateString.equals(birthdayDateString)) {
+                        congrats(bot.getBirthdaysReactions(), chatId, member);
+                    }
                 }
             }
         }
     }
 
-    private void congrats(File[] files, String chatId, String user) {
-        if (files == null) return;
+    private void congrats(List<Path> paths, String chatId, String user) {
+        if (paths == null) return;
 
-        File file = files[random.nextInt(files.length)];
-        String typeFile = FilenameUtils.getExtension(file.getName()).toLowerCase(Locale.ROOT);
+        Path path = paths.get(random.nextInt(paths.size()));
+        String typeFile = FilenameUtils.getExtension(path.getFileName().toString()).toLowerCase(Locale.ROOT);
         try {
             if (isPhoto(typeFile)) {
-                bot.execute(SendPhoto.builder().chatId(chatId).photo(new InputFile(file)).build());
+                bot.execute(SendPhoto.builder().chatId(chatId).photo(new InputFile(path.toFile())).build());
             } else if (isAnimation(typeFile)) {
-                bot.execute(SendAnimation.builder().chatId(chatId).animation(new InputFile(file)).build());
+                bot.execute(SendAnimation.builder().chatId(chatId).animation(new InputFile(path.toFile())).build());
             }
         } catch (TelegramApiException e) {
             log.error(failedToExecute, e);
